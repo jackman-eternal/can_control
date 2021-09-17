@@ -1,0 +1,46 @@
+#include "led.h"
+#include "delay.h"
+#include "key.h"
+#include "sys.h"
+#include "can.h"
+
+
+/************************************************
+
+
+
+************************************************/
+
+
+int main(void)
+{
+    u8 pid[8]={0x31,0x00,160,160,160,160,160,160};
+    u8 speed_control[8]= {0xa2,0x00,0x00,0x00,16,17,18};
+    u8 start[8]={0x88,0,0,0,0,0,0,0};
+    delay_init();	    	 //延时函数初始化
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置中断优先级分组为组2：2位抢占优先级，2位响应优先级
+    LED_Init();		  		//初始化与LED连接的硬件接口
+    KEY_Init();				//按键初始化
+    CAN_Mode_Init(CAN_SJW_1tq,CAN_BS2_8tq,CAN_BS1_9tq,2,CAN_Mode_Normal);
+    //CAN初始化正常模式,波特率1000Kbps
+    while(1)
+    {
+        if(!KEY0)
+        {
+            delay_us(50);
+            while(Can_Send1_Msg(pid,8)) ;
+            while(Can_Send1_Msg(speed_control,8)) ;
+            while(Can_Send1_Msg(start,8)) ;
+        }
+        if(!KEY1)
+        {
+            delay_us(50);
+            while(Can_Send2_Msg(pid,8)) ;
+            while(Can_Send2_Msg(speed_control,8)) ;
+            while(Can_Send2_Msg(start,8)) ;
+        }
+    }
+}
+
+
+
